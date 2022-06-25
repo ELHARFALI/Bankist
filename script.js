@@ -106,68 +106,117 @@ nav.addEventListener('mouseover', handleHover.bind(0.5));
 
 nav.addEventListener('mouseout', handleHover.bind(1));
 
-// // Select element
-// const header = document.querySelector('.header');
+// Sticky navigation
 
-// // Create element
-// const message = document.createElement('div');
-// message.classList.add('cookie-message');
+// const initalCoords = section1.getBoundingClientRect();
 
-// message.innerHTML = `We use cookied for improved functionality and analytics. <button class="btn btn--close-cookie">Got iy!</button>`;
-
-// header.append(message);
-
-// // Delete element
-// document
-//   .querySelector('.btn--close-cookie')
-//   .addEventListener('click', function () {
-//     message.remove();
-//   });
-
-// // Styles
-// message.style.backgroundColor = '#37383d';
-// message.style.width = '120%';
-
-// message.style.height =
-//   Number.parseFloat(getComputedStyle(message).height, 10) + 30 + 'px';
-
-// document.documentElement.style.setProperty('--color-primary', 'orangered');
-
-// // Attributes
-// const logo = document.querySelector('.nav__logo');
-
-// logo.alt = 'Beautiful minimalist logo';
-
-// logo.setAttribute('company', 'Bankist');
-
-// const link = document.querySelector('.nav__link--btn');
-// console.log(link.href);
-// console.log(link.getAttribute('href'));
-
-// // Data atteibute
-// console.log(logo.dataset.versionNumber);
-
-// // Classes
-// logo.classList.add('j', 'c');
-// logo.classList.remove('j', 'c');
-// logo.classList.toggle('j');
-// logo.classList.contains('j');
-
-// // rgb(255, 255, 255)
-
-// const randomInt = (min, max) =>
-//   Math.floor(Math.random() * (max - min + 1) + min);
-// const randomColor = () =>
-//   `rgb(${randomInt(0, 255)},${randomInt(0, 255)},${randomInt(0, 255)})`;
-
-// document.querySelector('.nav__link').addEventListener('click', function (e) {
-//   this.style.backgroundColor = randomColor();
+// window.addEventListener('scroll', function () {
+//   if (window.scrollY > initalCoords.top) nav.classList.add('sticky');
+//   else nav.classList.remove('sticky');
 // });
 
-// document.querySelector('.nav__links').addEventListener('click', function (e) {
-//   this.style.backgroundColor = randomColor();
-// });
+const header = document.querySelector('.header');
+const navHeight = nav.getBoundingClientRect().height;
 
-// document.querySelector('.nav').addEventListener('click', function (e) {
-//   this.style.backgroundColor = randomColor();
-// });
+const stickyNav = function (entries) {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) nav.classList.add('sticky');
+  else nav.classList.remove('sticky');
+};
+
+const headerobserver = new IntersectionObserver(stickyNav, {
+  root: null,
+  threshold: 0,
+  rootMargin: `-${navHeight}px`,
+});
+
+headerobserver.observe(header);
+
+// Reveal sections
+const allsections = document.querySelectorAll('.section');
+
+const revealSection = function (entries, observer) {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) return;
+
+  entry.target.classList.remove('section--hidden');
+  observer.unobserve(entry.target);
+};
+
+const sectionObserver = new IntersectionObserver(revealSection, {
+  root: null,
+  threshold: 0.15,
+});
+
+allsections.forEach(function (section) {
+  sectionObserver.observe(section);
+  section.classList.add('section--hidden');
+});
+
+//////////////////////////////////////////
+// Lazy loading images
+const imgtargets = document.querySelectorAll('img[data-src]');
+
+const loadImg = function (entries, observer) {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) return;
+
+  // Replace src with data-src
+  entry.target.src = entry.target.dataset.src;
+
+  entry.target.addEventListener('load', function () {
+    entry.target.classList.remove('lazy-img');
+  });
+
+  observer.unobserve(entry.target);
+};
+
+const imgObserver = new IntersectionObserver(loadImg, {
+  root: null,
+  threshold: 0,
+  rootMargin: '20px',
+});
+
+imgtargets.forEach(img => imgObserver.observe(img));
+
+////////////////////////////////////
+// Slider
+const slides = document.querySelectorAll('.slide');
+const btnLeft = document.querySelector('.slider__btn--left');
+const btnRighr = document.querySelector('.slider__btn--right');
+
+let curSlide = 0;
+const maxSlide = slides.length;
+
+const goToSlide = function (slide) {
+  slides.forEach(
+    (s, i) => (s.style.transform = `translateX(${100 * (i - slide)}%)`)
+  );
+};
+goToSlide(0);
+
+// Next slide
+const nextSlide = function () {
+  if (curSlide === maxSlide - 1) {
+    curSlide = 0;
+  } else {
+    curSlide++;
+  }
+  goToSlide(curSlide);
+};
+
+// Previeus slide
+const prevSlide = function () {
+  if (curSlide === 0) {
+    curSlide === maxSlide - 1;
+  } else {
+    curSlide--;
+  }
+  goToSlide(curSlide);
+};
+
+btnRighr.addEventListener('click', nextSlide);
+btnLeft.addEventListener('click', prevSlide);
